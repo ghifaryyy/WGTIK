@@ -1,0 +1,11 @@
+azure-cognitiveservices-vision-computervision
+msrest
+azure-identity
+opencv-python
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+python-dotenv
+jupyter

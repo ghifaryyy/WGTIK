@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Damaged Detection - AI Pothole Assessment</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js for Mapping -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Chart.js for Beautiful Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Core Application Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <span class="logo-icon"><i class="fa-solid fa-road-barrier"></i></span>
+                    <h1 class="logo-text" style="font-size: 1.2rem;">ROAD <span class="logo-accent">DAMAGED</span></h1>
+                </div>
+                <p class="tagline">Detection System</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-view="landing">
+                        <span class="nav-icon"><i class="fa-solid fa-circle-info"></i></span>
+                        <span class="nav-text">Road Damaged Detection</span>
+                    </li>
+                    <li class="nav-item" data-view="dashboard">
+                        <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+                        <span class="nav-text">Live Dashboard</span>
+                    </li>
+                    <li class="nav-item" data-view="sandbox">
+                        <span class="nav-icon"><i class="fa-solid fa-cube"></i></span>
+                        <span class="nav-text">AI Sandbox</span>
+                    </li>
+                    <li class="nav-item" data-view="reports">
+                        <span class="nav-icon"><i class="fa-solid fa-flag"></i></span>
+                        <span class="nav-text">Citizen Reports</span>
+                    </li>
+                    <li class="nav-item" data-view="government">
+                        <span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                        <span class="nav-text">Gov Console</span>
+                        <span class="badge" id="pending-badge">0</span>
+                    </li>
+                    <li class="nav-item logout-item" id="btn-logout" style="margin-top: 40px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+                        <span class="nav-icon" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i></span>
+                        <span class="nav-text" style="color: #ef4444;">Sign Out</span>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Group Details Footer -->
+            <div class="sidebar-footer">
+                <div class="footer-title">GROUP D - DS-48-03</div>
+                <ul class="team-list">
+                    <li><i class="fa-solid fa-circle-user"></i> Ghifary Wibisono</li>
+                    <li><i class="fa-solid fa-circle-user"></i> Prayata Yasinkha</li>
+                    <li><i class="fa-solid fa-circle-user"></i> Zaky Muhammad</li>
+                    <li><i class="fa-solid fa-circle-user"></i> Luthfia Maulidya</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- HEADER -->
+            <header class="main-header">
+                <div class="header-title-container" style="display: flex; align-items: center; gap: 14px;">
+                    <!-- Logo shown in Header ONLY in Guest Mode (when sidebar is hidden) -->
+                    <div id="header-logo" class="logo-container" style="display: none; align-items: center; gap: 10px; cursor: pointer;">
+                        <span class="logo-icon" style="color: var(--primary); font-size: 1.4rem;"><i class="fa-solid fa-road-barrier"></i></span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1;">
+                            <h1 class="logo-text" style="font-size: 1.1rem; color: var(--text-main); margin: 0; font-family: 'Outfit';">ROAD <span class="logo-accent" style="color: var(--primary);">DAMAGED</span></h1>
+                            <p class="tagline" style="font-size: 0.55rem; color: var(--text-muted); letter-spacing: 1px; margin: 0; text-transform: uppercase; font-weight: 700;">Detection System</p>
+                        </div>
+                    </div>
+                    <h2 id="view-title">Road Damaged Detection</h2>
+                    <button id="btn-back-home" class="btn btn-secondary" style="display: none; padding: 6px 14px; font-size: 0.75rem; border-radius: 20px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #334155; font-weight: 600; cursor: pointer; transition: all 0.2s; align-items: center; gap: 6px; font-family: inherit;">
+                        <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                    </button>
+                    <span class="live-indicator"><span class="dot blinking"></span> Live Feed Active</span>
+                </div>
+                <div class="header-meta">
+                    <div class="time-widget">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="current-time">Saturday, 19:20 PM</span>
+                    </div>
+                    <div id="header-profile-area">
+                        <!-- Will be rendered dynamically via Javascript: Profile Widget or Sign In Button -->
+                    </div>
+                </div>
+            </header>
+            
+            <!-- VIEW: ABOUT / LANDING PAGE -->
+            <section id="view-landing" class="content-view active">
+                <!-- HERO BANNER -->
+                <div class="landing-hero glass animate-fade-in" style="background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%); color: #fff; padding: 48px; border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15); border: none;">
+                    <div class="hero-bg-accent" style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, rgba(0,0,0,0) 70%); pointer-events: none;"></div>
+                    <div style="max-width: 650px; position: relative; z-index: 2;">
+                        <span style="background: rgba(255, 255, 255, 0.15); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 16px;"><i class="fa-solid fa-wand-magic-sparkles"></i> WGTIK Group D Innovation Project</span>
+                        <h1 style="font-size: 2.5rem; line-height: 1.2; font-weight: 800; margin-bottom: 16px; font-family: 'Outfit', sans-serif;">Pothole & Road Damage Detection Powered by AI</h1>
+                        <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 28px; font-weight: 450;">
+                            RODATION AI adalah platform crowdsourcing kolaboratif berbasis kecerdasan buatan (Computer Vision YOLOv8) untuk mendeteksi, memetakan, dan mempercepat perbaikan infrastruktur jalan rusak secara real-time demi keselamatan warga Bandung.
+                        </p>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button class="btn btn-primary cta-explore-map" id="btn-landing-explore" style="background: #ffffff; color: var(--primary); font-weight: 700; padding: 12px 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 30px; border: none; cursor: pointer; font-family: inherit;">
+                                <i class="fa-solid fa-map-location-dot"></i> Buka Live Map Tracker
+                            </button>
+                            <button class="btn btn-secondary cta-try-sandbox" id="btn-landing-sandbox" style="background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; padding: 12px 24px; border: 1px solid rgba(255,255,255,0.25); border-radius: 30px; backdrop-filter: blur(10px); cursor: pointer; font-family: inherit;">
+                                <i class="fa-solid fa-cube"></i> Coba AI Sandbox
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC CORE PILLARS Grid -->
+                <div class="grid-2" style="margin-bottom: 30px;">
+                    <!-- CORE PILLARS LEFT -->
+                    <div class="landing-pillars" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="landing-section-title animate-slide-up" style="animation-delay: 0.15s; text-align: left;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 8px;"></i> Keunggulan Utama RODATION AI</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Mengintegrasikan kecerdasan buatan dengan kekuatan crowdsourcing masyarakat secara seamless.</p>
+                        </div>
+                        
+                        <!-- PILLAR 1 -->
+                        <div class="pillar-card glass animate-slide-up" style="padding: 20px; display: flex; gap: 16px; align-items: flex-start; animation-delay: 0.2s;">
+                            <div style="background: #f5f3ff; color: var(--secondary); padding: 12px; border-radius: 12px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-brain"></i></div>
+                            <div style="text-align: left;">
+                                <h4 style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Deteksi Bounding Box YOLOv8</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">Sistem memproses unggahan foto secara instan menggunakan deep learning untuk melokalisasi lubang jalan dengan rating confidence tinggi.</p>
+                            </div>
+                        </div>
+
+                        <!-- PILLAR 2 -->
+                        <div class="pillar-card glass animate-slide-up" style="padding: 20px; display: flex; gap: 16px; align-items: flex-start; animation-delay: 0.28s;">
+                            <div style="background: #ecfdf5; color: var(--success); padding: 12px; border-radius: 12px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-satellite"></i></div>
+                            <div style="text-align: left;">
+                                <h4 style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Automated EXIF GPS Telemetry</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">Secara otomatis mengekstrak metadata koordinat geografis asli dari data EXIF foto smartphone pengguna untuk penandaan peta instan.</p>
+                            </div>
+                        </div>
+
+                        <!-- PILLAR 3 -->
+                        <div class="pillar-card glass animate-slide-up" style="padding: 20px; display: flex; gap: 16px; align-items: flex-start; animation-delay: 0.36s;">
+                            <div style="background: #fff7ed; color: var(--warning); padding: 12px; border-radius: 12px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-users-viewfinder"></i></div>
+                            <div style="text-align: left;">
+                                <h4 style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Sinergi Kolaborasi Warga & Pemkot</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">Laporan terverifikasi langsung terintegrasi ke panel operator dinas bina marga kota untuk memangkas siklus birokrasi perbaikan.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI VISUALIZATION PREVIEW RIGHT -->
+                    <div class="landing-simulation glass animate-slide-up" style="padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 16px; animation-delay: 0.4s; overflow: hidden;">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; text-align: left;"><i class="fa-solid fa-microchip" style="color: var(--primary);"></i> AI Diagnostics Simulation</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; text-align: left;">Pratinjau deteksi real-time komputer visi saat menganalisis kontur jalan rusak di lapangan:</p>
+                        
+                        <!-- MOCK AI CAMERA BOX -->
+                        <div style="position: relative; width: 100%; height: 220px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(226,232,240,0.8); background: #334155; display: flex; align-items: center; justify-content: center;">
+                            <img src="/uploads/default_pothole.jpg" onerror="this.src='https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=600&auto=format&fit=crop'" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                            
+                            <!-- SCANNING LASER EFFECT -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: rgba(99,102,241,0.8); box-shadow: 0 0 15px 4px rgba(99,102,241,0.6); animation: laserScan 2.5s infinite linear;"></div>
+                            
+                            <!-- MOCK BOUNDING BOX -->
+                            <div style="position: absolute; top: 35%; left: 25%; width: 45%; height: 40%; border: 2px solid var(--danger); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); border-radius: 4px; pointer-events: none; animation: pulseGlow 1.5s infinite ease-in-out;">
+                                <span style="position: absolute; top: -20px; left: -2px; background: var(--danger); color: #fff; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 2px; white-space: nowrap; text-transform: uppercase;">
+                                    POTHOLE : 96.4% Severity High
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- STATS ROW inside visualizer -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-top: 6px;">
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                                <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">0.08s</div>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600;">Inference Speed</div>
+                            </div>
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                                <div style="font-size: 1.1rem; font-weight: 800; color: var(--success);">96.4%</div>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600;">Average Accuracy</div>
+                            </div>
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                                <div style="font-size: 1.1rem; font-weight: 800; color: var(--secondary);">YOLOv8</div>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600;">Model Framework</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KEY METRICS ROW -->
+                <div class="metrics-grid animate-slide-up" style="animation-delay: 0.48s; grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                    <div class="metric-card glass" style="padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--primary); font-family: 'Outfit';">85%</span>
+                        <h4 style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Repair Cycle Speedup</h4>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin: 0;">Memangkas proses birokrasi penanganan jalan berlubang secara instan melalui notifikasi panel admin.</p>
+                    </div>
+                    <div class="metric-card glass" style="padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--success); font-family: 'Outfit';">4.2x</span>
+                        <h4 style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Accident Risk Reduction</h4>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin: 0;">Mengurangi bahaya kecelakaan pemotor di jalan raya berkat pendeteksian titik kritis yang lebih proaktif.</p>
+                    </div>
+                    <div class="metric-card glass" style="padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+                        <span style="font-size: 2.2rem; font-weight: 800; color: var(--secondary); font-family: 'Outfit';">Rp 0</span>
+                        <h4 style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Open Source GIS Setup</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin: 0;">Memanfaatkan Leaflet.js dan OpenStreetMap secara gratis tanpa biaya API key berbayar berlisensi Google.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- VIEW: DASHBOARD (MAP & STATS) -->
+            <section id="view-dashboard" class="content-view">
+                
+                <!-- METRIC CARDS -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass">
+                        <div class="metric-icon val-total"><i class="fa-solid fa-eye"></i></div>
+                        <div class="metric-details">
+                            <h3>Total Detections</h3>
+                            <p class="metric-value" id="stat-total">0</p>
+                            <span class="metric-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +14.2% this week</span>
+                        </div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-icon val-active"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="metric-details">
+                            <h3>Active Potholes</h3>
+                            <p class="metric-value" id="stat-active">0</p>
+                            <span class="metric-trend warn">Awaiting Repair</span>
+                        </div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-icon val-repaired"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="metric-details">
+                            <h3>Repaired Roadways</h3>
+                            <p class="metric-value" id="stat-repaired">0</p>
+                            <span class="metric-trend down"><i class="fa-solid fa-shield"></i> Infrastructure safety</span>
+                        </div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-icon val-hotspots"><i class="fa-solid fa-skull-crossbones"></i></div>
+                        <div class="metric-details">
+                            <h3>Dangerous Hotspots</h3>
+                            <p class="metric-value" id="stat-hotspots">0</p>
+                            <span class="metric-trend danger">High severity issues</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- INTERACTIVE MAP SECTION -->
+                <div class="dashboard-section map-section glass">
+                    <div class="section-header">
+                        <h3><i class="fa-solid fa-map-location-dot"></i> Real-time Road Damage Map</h3>
+                        <div class="map-controls">
+                            <span class="legend-item"><span class="legend-dot red"></span> High</span>
+                            <span class="legend-item"><span class="legend-dot orange"></span> Medium</span>
+                            <span class="legend-item"><span class="legend-dot yellow"></span> Low</span>
+                            <span class="legend-item"><span class="legend-dot green"></span> Repaired</span>
+                        </div>
+                    </div>
+                    <div id="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
+                
+                <!-- CHARTS AND RECENT LOGS ROW -->
+                <div class="dashboard-row grid-2">
+                    
+                    <!-- CHARTS CONTAINER -->
+                    <div class="dashboard-section chart-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Statistical Analyses</h3>
+                        </div>
+                        <div class="charts-inner">
+                            <div class="chart-box">
+                                <canvas id="chart-severity"></canvas>
+                            </div>
+                            <div class="chart-box">
+                                <canvas id="chart-timeline"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- RECENT LOGS CONTAINER -->
+                    <div class="dashboard-section logs-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-list-check"></i> Live Activity Feed</h3>
+                        </div>
+                        <div class="activity-feed" id="activity-feed-list">
+                            <!-- Populated in JS -->
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+            
+            <!-- VIEW: AI SANDBOX -->
+            <section id="view-sandbox" class="content-view">
+                <div class="dashboard-row grid-2">
+                    
+                    <!-- UPLOAD SECTION -->
+                    <div class="dashboard-section upload-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Test Image</h3>
+                        </div>
+                        
+                        <div class="drag-drop-zone" id="drop-zone">
+                            <div class="drop-zone-content">
+                                <i class="fa-solid fa-images drop-icon"></i>
+                                <h4>Drag & Drop Road Image</h4>
+                                <p>or click to browse local files (Supports JPG, PNG, JPEG)</p>
+                                <input type="file" id="file-input" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <div class="canvas-wrapper">
+                            <div class="canvas-header" style="display:none;" id="canvas-header-div">
+                                <span><i class="fa-solid fa-microchip"></i> AI Inference Analysis</span>
+                                <span class="tag" id="inference-class-tag">Damaged</span>
+                            </div>
+                            <div class="canvas-container">
+                                <img id="sandbox-preview" src="" alt="Preview" style="display: none; max-width: 100%; border-radius: 8px;">
+                                <div id="upload-placeholder">
+                                    <i class="fa-solid fa-file-invoice"></i>
+                                    <p>Uploaded image with detected bounding boxes will display here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- INFERENCE METRICS SECTION -->
+                    <div class="dashboard-section inference-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-brain"></i> AI Diagnostics Panel</h3>
+                        </div>
+                        
+                        <div class="diagnostic-grid">
+                            <div class="diag-card">
+                                <span class="diag-label">Inference Status</span>
+                                <span class="diag-value text-muted" id="diag-status">Awaiting Upload</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">Confidence Rating</span>
+                                <span class="diag-value text-cyan" id="diag-conf">N/A</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">Damage Class</span>
+                                <span class="diag-value" id="diag-class">N/A</span>
+                            </div>
+                            <div class="diag-card">
+                                <span class="diag-label">Calculated Severity</span>
+                                <span class="diag-value" id="diag-severity">N/A</span>
+                            </div>
+                        </div>
+                        
+                        <div class="sandbox-metadata-form" id="sandbox-form" style="display: none;">
+                            <div class="form-row">
+                                <label for="sandbox-lat"><i class="fa-solid fa-map-pin"></i> Latitude</label>
+                                <input type="number" id="sandbox-lat" step="0.000001" placeholder="e.g. -6.9745">
+                            </div>
+                            <div class="form-row">
+                                <label for="sandbox-lng"><i class="fa-solid fa-map-pin"></i> Longitude</label>
+                                <input type="number" id="sandbox-lng" step="0.000001" placeholder="e.g. 107.6304">
+                            </div>
+                            <div class="form-row">
+                                <label for="sandbox-desc"><i class="fa-solid fa-comment-dots"></i> Reporter Notes</label>
+                                <textarea id="sandbox-desc" placeholder="Describe the road condition..."></textarea>
+                            </div>
+                            <div class="form-row">
+                                <label for="sandbox-reporter"><i class="fa-solid fa-signature"></i> Reporter Name</label>
+                                <input type="text" id="sandbox-reporter" value="Ghifary Wibisono">
+                            </div>
+                            
+                            <button class="btn btn-primary" id="btn-save-sandbox">
+                                <i class="fa-solid fa-floppy-disk"></i> Commit Report to Database & Map
+                            </button>
+                        </div>
+                        
+                        <div class="demo-hints">
+                            <h4>💡 Presentation Demo Tips</h4>
+                            <p>To demonstrate high-fidelity detections without installing deep learning models, uploading files containing the word <strong>"damaged"</strong> or <strong>"pothole"</strong> will trigger simulated damage boxes in the lower half of the frame. Files with <strong>"normal"</strong> or <strong>"clean"</strong> will trigger clean roads.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- VIEW: CITIZEN REPORTS -->
+            <section id="view-reports" class="content-view">
+                <div class="dashboard-row grid-2">
+                    
+                    <!-- MANUAL REPORT FORM -->
+                    <div class="dashboard-section form-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-bullhorn"></i> Report Road Damage</h3>
+                        </div>
+                        
+                        <form id="citizen-report-form" class="citizen-form">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-compass"></i> Select Location on Mini-Map</label>
+                                <p class="form-tip">Click on the map below to instantly lock in coordinates.</p>
+                                <div id="mini-map-container">
+                                    <div id="mini-map"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 8px;">
+                                <button type="button" class="btn btn-secondary" id="btn-get-location" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; font-weight: 600; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 0.85rem;">
+                                    <i class="fa-solid fa-location-crosshairs" style="color: var(--primary);"></i> Deteksi Lokasi GPS Saya
+                                </button>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 12px; position: relative;">
+                                <label><i class="fa-solid fa-keyboard"></i> Lokasi / Alamat Terdeteksi (Bisa Diedit Manual)</label>
+                                <div class="address-display" id="address-display-box" style="margin-bottom: 0; padding: 12px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 8px; font-size: 0.85rem; color: #1e293b; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fa-solid fa-map-pin" style="color: var(--danger); font-size: 1rem; flex-shrink: 0;"></i>
+                                    <input type="text" id="address-text" style="background: transparent; border: none; outline: none; width: 100%; font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; padding: 0;" placeholder="Ketik nama lokasi atau jalan untuk mencari..." required value="Jl. Telekomunikasi, Kampus Telkom University">
+                                </div>
+                                <div id="address-suggestions" class="suggestions-dropdown" style="display: none;"></div>
+                            </div>
+                            
+                            <div class="grid-2-form" style="display: none;">
+                                <div class="form-group">
+                                    <label for="rep-lat">Latitude</label>
+                                    <input type="number" id="rep-lat" step="0.000001" required readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rep-lng">Longitude</label>
+                                    <input type="number" id="rep-lng" step="0.000001" required readonly>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rep-severity">Damage Severity</label>
+                                <select id="rep-severity">
+                                    <option value="Low">Low - Small cracks/dents (Non-critical)</option>
+                                    <option value="Medium" selected>Medium - Noticeable pothole (Urgent)</option>
+                                    <option value="High">High - Deep pothole / structural failure (CRITICAL)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rep-desc">Additional Details / Descriptions</label>
+                                <textarea id="rep-desc" placeholder="Provide extra description about landmarks or damage details..." required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rep-reporter">Your Name (Reporter)</label>
+                                <input type="text" id="rep-reporter" placeholder="e.g. Prayata Y.">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Submit Incident Report
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- USER'S REPORT HISTORY FEED -->
+                    <div class="dashboard-section feed-container glass">
+                        <div class="section-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> My Submissions</h3>
+                        </div>
+                        
+                        <div class="citizen-submissions" id="citizen-submissions-list">
+                            <!-- Populated in JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- VIEW: GOVERNMENT / OPERATOR CONSOLE -->
+            <section id="view-government" class="content-view">
+                <div class="dashboard-section table-section glass">
+                    <div class="section-header table-header-flex">
+                        <h3><i class="fa-solid fa-users-gear"></i> Infrastructure Maintenance Operator Panel</h3>
+                        
+                        <div class="table-filters">
+                            <select id="filter-severity">
+                                <option value="">All Severities</option>
+                                <option value="High">High Severity</option>
+                                <option value="Medium">Medium Severity</option>
+                                <option value="Low">Low Severity</option>
+                            </select>
+                            
+                            <select id="filter-status">
+                                <option value="">All Statuses</option>
+                                <option value="Reported">Reported</option>
+                                <option value="Verified">Verified</option>
+                                <option value="Scheduled">Scheduled for Repair</option>
+                                <option value="Repaired">Repaired</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- TABLE CONTAINER -->
+                    <div class="table-responsive">
+                        <table class="gov-table" id="gov-reports-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Coordinates</th>
+                                    <th>Severity</th>
+                                    <th>Reporter</th>
+                                    <th>Date Reported</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+    
+    <!-- Beautiful Login Portal Overlay -->
+    <div id="login-overlay" class="login-overlay-container" style="display: none;">
+        <div class="login-box glass" style="position: relative;">
+            <span id="btn-close-login" style="position: absolute; top: 16px; right: 20px; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;"><i class="fa-solid fa-xmark"></i></span>
+            <div class="login-header">
+                <span class="login-logo-icon"><i class="fa-solid fa-road-barrier"></i></span>
+                <h2>ROAD <span class="logo-accent">DAMAGED</span></h2>
+                <p class="login-tagline">Detection System Portal</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username"><i class="fa-solid fa-user"></i> Username</label>
+                    <input type="text" id="login-username" placeholder="Masukkan 'admin' atau 'user'" required>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="login-password" placeholder="Masukkan password" required>
+                </div>
+                <div id="login-error" class="login-error-msg" style="display: none; color: var(--danger); font-size: 0.75rem; font-weight: 600; margin-top: 12px; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Username atau password salah!
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In Portal
+                </button>
+                <button type="button" id="btn-cancel-login" class="btn btn-secondary" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #334155; font-weight: 600; font-family: inherit;">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+                </button>
+            </form>
+            <div class="login-hints" style="margin-top: 24px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.08); border-radius: 8px; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-align: left;">
+                <p style="font-weight: 700; color: var(--primary); margin-bottom: 6px;"><i class="fa-solid fa-key"></i> Akun Demo Kelompok D:</p>
+                <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 6px;">
+                    <li>💼 <strong>Pemerintah:</strong> admin / admin</li>
+                    <li>👥 <strong>Anggota (User/Pass sama):</strong></li>
+                    <li style="padding-left: 10px; font-size: 0.7rem; color: #475569; font-weight: 500;">
+                        • ghifary, prayata, zaky, luthfia, user
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Application Javascript -->
+    <script src="app.js"></script>
+</body>
+</html>
